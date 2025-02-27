@@ -10,8 +10,8 @@ fi
 NEW_VERSION=$1
 
 # Actualizar el archivo de versión en formato JSON
-# Usamos jq para modificar la clave "version" dentro de version.json
-jq --arg version "$NEW_VERSION" '.version = $version' version.json > temp.json && mv temp.json version.json
+# Usamos PowerShell para modificar el archivo JSON en lugar de jq
+powershell -Command "(Get-Content version.json | ConvertFrom-Json) | ForEach-Object { \$_.version = '$NEW_VERSION'; \$_.psobject.Properties.Remove('psversiontable') } | ConvertTo-Json | Set-Content version.json"
 
 # Hacer git add y git commit
 git add version.json
