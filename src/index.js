@@ -1,9 +1,19 @@
 import express from 'express';
-import AWS from 'aws-sdk';
+import axios from 'axios';
+import helmet from 'helmet';
+import morgan from 'morgan';
 
 const app = express();
-const lambda = new AWS.Lambda({ region: 'us-east-1' });
 
+// Middleware
+app.use(helmet());
+app.use(morgan('combined'));
+
+// Variables de entorno
+const lambdaUrl = "https://mmk4ay6qawdjcazelchctit5lm0jrwah.lambda-url.us-east-1.on.aws/";
+const port = 3000;
+
+// Rutas
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
@@ -12,22 +22,29 @@ app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
 
-app.get('/invoke-lambda', (req, res) => {
-    const params = {
-        FunctionName: 'express-api',
-        InvocationType: 'RequestResponse',
-        Payload: JSON.stringify({})
-    };
+app.get('/invoke-lambda', async (req, res) => {
+    try {
+        const payload = {};
 
-    lambda.invoke(params, (err, data) => {
-        if (err) {
-            res.status(500).send(err);
+        const response = await axios.post(lambdaUrl, payload, {
+            timeout: 5000,
+        });
+
+        res.send(response.data);
+    } catch (err) {
+        console.error("Error invoking Lambda:", err);
+
+        if (err.response) {
+            res.status(err.response.status).send(err.response.data);
+        } else if (err.request) {
+            res.status(500).send('No response from Lambda');
         } else {
-            res.send(data.Payload);
+            res.status(500).send('Error setting up request to Lambda');
         }
-    });
+    }
 });
 
-app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
+// Iniciar servidor
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });

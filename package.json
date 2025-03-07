@@ -12,6 +12,9 @@
   "dependencies": {
     "aws-sdk": "^2.1692.0",
     "aws-serverless-express": "^3.4.0",
-    "express": "^4.21.2"
+    "axios": "^1.8.2",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0"
   }
 }
